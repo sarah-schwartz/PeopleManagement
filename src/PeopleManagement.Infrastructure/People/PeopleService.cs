@@ -39,7 +39,7 @@ public sealed class PeopleService : IPeopleService
         if (!validationResult.IsValid)
             throw new ValidationException(validationResult.Errors);
 
-        var person = new Person(input.FullName.Trim(), input.Email.Trim(), input.Phone?.Trim());
+        var person = new Person(input.FirstName.Trim(), input.LastName.Trim(), input.Email.Trim(), input.Phone?.Trim(), input.Status);
 
         if (input.PhotoContent is { Length: > 0 }
             && !string.IsNullOrWhiteSpace(input.PhotoFileName)
@@ -60,10 +60,14 @@ public sealed class PeopleService : IPeopleService
         return person.Id;
     }
 
-    public async Task<IReadOnlyList<Person>> ListAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Person>> ListAsync(PersonStatus? status = null, CancellationToken cancellationToken = default)
     {
-        var people = await _dbContext.People
-            .AsNoTracking()
+        var query = _dbContext.People.AsNoTracking();
+
+        if (status.HasValue)
+            query = query.Where(p => p.Status == status.Value);
+
+        var people = await query
             .OrderBy(p => p.CreatedAtUtc)
             .ToListAsync(cancellationToken);
 
@@ -79,25 +83,42 @@ public sealed class PeopleService : IPeopleService
 
     public async Task<IReadOnlyList<Person>> SearchAsync(string query, CancellationToken cancellationToken = default)
     {
-        var trimmedQuery = (query ?? string.Empty).Trim();
+        var trimmed = (query ?? string.Empty).Trim();
 
-        if (string.IsNullOrEmpty(trimmedQuery))
-            return await ListAsync(cancellationToken);
+        if (string.IsNullOrEmpty(trimmed))
+            return await ListAsync(null, cancellationToken);
 
-        var normalizedQuery = trimmedQuery.ToLower();
+        var lower = trimmed.ToLower();
 
-        var people = await _dbContext.People
-            .AsNoTracking()
-            .Where(p => p.FullName.ToLower().Contains(normalizedQuery))
-            .OrderBy(p => p.FullName)
+        var dbQuery = _dbContext.People.AsNoTracking();
+
+        if (lower.Contains(' '))
+        {
+            // Multi-word query (e.g. "moshe c"): also check the combined "FirstName LastName"
+            // because neither field alone would match a term that spans the boundary.
+            dbQuery = dbQuery.Where(p =>
+                p.FirstName.ToLower().Contains(lower) ||
+                p.LastName.ToLower().Contains(lower) ||
+                (p.FirstName + " " + p.LastName).ToLower().Contains(lower));
+        }
+        else
+        {
+            // Single-word query: checking each field is sufficient —
+            // the concatenated form cannot match anything the individual fields don't already cover.
+            dbQuery = dbQuery.Where(p =>
+                p.FirstName.ToLower().Contains(lower) ||
+                p.LastName.ToLower().Contains(lower));
+        }
+
+        return await dbQuery
+            .OrderBy(p => p.LastName)
+            .ThenBy(p => p.FirstName)
             .ToListAsync(cancellationToken);
-
-        return people;
     }
 
     public async Task<byte[]> ExportPeopleListAsync(CancellationToken cancellationToken = default)
     {
-        var people = await ListAsync(cancellationToken);
+        var people = await ListAsync(null, cancellationToken);
         return await _pdfExportService.ExportPeopleListAsync(people, cancellationToken);
     }
 

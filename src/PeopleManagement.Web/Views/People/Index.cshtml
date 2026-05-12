@@ -39,14 +39,19 @@
 
     <div class="card card-sm mb-4">
         <div class="card-body">
-            <form method="get" class="d-flex gap-2">
+            <form method="get" class="d-flex gap-2 flex-wrap align-items-center">
                 <input type="text" name="search" class="form-control"
                        placeholder="חיפוש לפי שם"
-                       value="@Model.SearchQuery" />
+                       value="@Model.SearchQuery" style="max-width: 280px;" />
+                <select name="status" class="form-select" style="max-width: 160px;">
+                    <option value="" selected="@(Model.StatusFilter == null)">כל הסטטוסים</option>
+                    <option value="Active" selected="@(Model.StatusFilter == PeopleManagement.Domain.People.PersonStatus.Active)">פעיל</option>
+                    <option value="Inactive" selected="@(Model.StatusFilter == PeopleManagement.Domain.People.PersonStatus.Inactive)">לא פעיל</option>
+                </select>
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-search"></i> חיפוש
                 </button>
-                @if (!string.IsNullOrEmpty(Model.SearchQuery))
+                @if (!string.IsNullOrEmpty(Model.SearchQuery) || Model.StatusFilter != null)
                 {
                     <a asp-action="Index" class="btn btn-outline-secondary">
                         <i class="bi bi-x-circle"></i> ניקוי
@@ -68,10 +73,11 @@
                                 <th class="text-center align-middle" style="width: 52px;" title="סימון לייצוא PDF">
                                     <input type="checkbox" class="form-check-input m-0" id="selectAllPeople" aria-label="בחר את כל השורות לייצוא" />
                                 </th>
-                                <th style="width: 24%;">שם מלא</th>
-                                <th style="width: 24%;">דוא"ל</th>
-                                <th style="width: 18%;">טלפון</th>
-                                <th style="width: 26%;">נוצר בתאריך</th>
+                                <th style="width: 22%;">שם מלא</th>
+                                <th style="width: 22%;">דוא"ל</th>
+                                <th style="width: 14%;">טלפון</th>
+                                <th style="width: 12%;">סטטוס</th>
+                                <th style="width: 22%;">נוצר בתאריך</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -93,6 +99,16 @@
                                         else
                                         {
                                             <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (person.Status == PeopleManagement.Domain.People.PersonStatus.Active)
+                                        {
+                                            <span class="badge bg-success">פעיל</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">לא פעיל</span>
                                         }
                                     </td>
                                     <td>

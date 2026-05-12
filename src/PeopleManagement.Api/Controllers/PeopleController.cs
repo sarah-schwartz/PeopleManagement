@@ -46,9 +46,11 @@ public sealed class PeopleController : ControllerBase
 
         var input = new CreatePersonInput
         {
-            FullName = form.FullName,
+            FirstName = form.FirstName,
+            LastName = form.LastName,
             Email = form.Email,
             Phone = form.Phone,
+            Status = form.Status,
             PhotoContent = photoContent,
             PhotoFileName = photoFileName,
             PhotoContentType = photoContentType
@@ -71,9 +73,9 @@ public sealed class PeopleController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<Person>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> ListAsync(CancellationToken cancellationToken)
+    public async Task<IActionResult> ListAsync([FromQuery] PersonStatus? status, CancellationToken cancellationToken)
     {
-        var people = await _peopleService.ListAsync(cancellationToken);
+        var people = await _peopleService.ListAsync(status, cancellationToken);
         return Ok(people);
     }
 
@@ -109,9 +111,11 @@ public sealed class PeopleController : ControllerBase
 /// <summary>Form model for POST /api/People (multipart/form-data).</summary>
 public sealed class CreatePersonFormInput
 {
-    public string FullName { get; init; } = string.Empty;
+    public string FirstName { get; init; } = string.Empty;
+    public string LastName { get; init; } = string.Empty;
     public string Email { get; init; } = string.Empty;
     public string? Phone { get; init; }
+    public PersonStatus Status { get; init; } = PersonStatus.Active;
     public IFormFile? Photo { get; init; }
 }
 

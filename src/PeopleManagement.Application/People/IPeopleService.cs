@@ -6,7 +6,7 @@ public interface IPeopleService
 {
     Task<int> CreateAsync(CreatePersonInput input, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<Person>> ListAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Person>> ListAsync(PersonStatus? status = null, CancellationToken cancellationToken = default);
 
     Task<Person?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
 

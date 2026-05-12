@@ -14,11 +14,12 @@ public sealed class PeopleApiIntegrationTests : IClassFixture<ApiWebApplicationF
     }
 
     // Helper: build a multipart/form-data body for POST /api/People.
-    private static MultipartFormDataContent BuildPersonForm(string fullName, string email, string? phone = null)
+    private static MultipartFormDataContent BuildPersonForm(string firstName, string lastName, string email, string? phone = null)
     {
         var form = new MultipartFormDataContent
         {
-            { new StringContent(fullName), "fullName" },
+            { new StringContent(firstName), "firstName" },
+            { new StringContent(lastName), "lastName" },
             { new StringContent(email), "email" }
         };
         if (phone is not null)
@@ -33,7 +34,7 @@ public sealed class PeopleApiIntegrationTests : IClassFixture<ApiWebApplicationF
 
         var createResponse = await _client.PostAsync(
             "/api/People",
-            BuildPersonForm("Integration User", email, "050-0000000"));
+            BuildPersonForm("Integration", "User", email, "050-0000000"));
 
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
 
@@ -58,9 +59,9 @@ public sealed class PeopleApiIntegrationTests : IClassFixture<ApiWebApplicationF
         var suffix = Guid.NewGuid().ToString("N")[..8];
 
         await _client.PostAsync("/api/People",
-            BuildPersonForm($"SearchUniqueAlpha {suffix}", $"search-{suffix}@example.com"));
+            BuildPersonForm("SearchUniqueAlpha", suffix, $"search-{suffix}@example.com"));
         await _client.PostAsync("/api/People",
-            BuildPersonForm("Other Person Beta", $"other-{suffix}@example.com"));
+            BuildPersonForm("Other", "Person Beta", $"other-{suffix}@example.com"));
 
         var searchResponse = await _client.GetAsync(
             $"/api/People/search?query={Uri.EscapeDataString("SearchUniqueAlpha")}");
@@ -81,7 +82,7 @@ public sealed class PeopleApiIntegrationTests : IClassFixture<ApiWebApplicationF
     {
         var response = await _client.PostAsync(
             "/api/People",
-            BuildPersonForm("Bad Email User", "not-an-email"));
+            BuildPersonForm("Bad", "Email User", "not-an-email"));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -91,10 +92,10 @@ public sealed class PeopleApiIntegrationTests : IClassFixture<ApiWebApplicationF
     {
         var email = $"dup-{Guid.NewGuid():N}@example.com";
 
-        var first = await _client.PostAsync("/api/People", BuildPersonForm("First", email));
+        var first = await _client.PostAsync("/api/People", BuildPersonForm("First", "", email));
         Assert.Equal(HttpStatusCode.Created, first.StatusCode);
 
-        var second = await _client.PostAsync("/api/People", BuildPersonForm("Second", email));
+        var second = await _client.PostAsync("/api/People", BuildPersonForm("Second", "", email));
         Assert.Equal(HttpStatusCode.InternalServerError, second.StatusCode);
     }
 }

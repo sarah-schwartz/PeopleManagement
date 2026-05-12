@@ -15,9 +15,19 @@ internal sealed class PersonConfiguration : IEntityTypeConfiguration<Person>
         builder.Property(p => p.Id)
             .ValueGeneratedOnAdd();
 
-        builder.Property(p => p.FullName)
+        builder.Property(p => p.Status)
             .IsRequired()
-            .HasMaxLength(Person.FullNameMaxLength);
+            .HasConversion<int>();
+
+        builder.Property(p => p.FirstName)
+            .IsRequired()
+            .HasMaxLength(Person.FirstNameMaxLength);
+
+        builder.Property(p => p.LastName)
+            .IsRequired()
+            .HasMaxLength(Person.LastNameMaxLength);
+
+        builder.Ignore(p => p.FullName);
 
         builder.Property(p => p.Email)
             .IsRequired()

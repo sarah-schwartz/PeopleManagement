@@ -66,7 +66,8 @@ public sealed class PeopleServiceTests : IDisposable
     {
         var input = new CreatePersonInput
         {
-            FullName = "  Unit Test User  ",
+            FirstName = "  Unit Test  ",
+            LastName = "  User  ",
             Email = "unit-test@example.com",
             Phone = "050-1234567"
         };
@@ -75,9 +76,46 @@ public sealed class PeopleServiceTests : IDisposable
 
         Assert.True(id > 0);
         var stored = await _dbContext.People.AsNoTracking().SingleAsync();
+        Assert.Equal("Unit Test", stored.FirstName);
+        Assert.Equal("User", stored.LastName);
         Assert.Equal("Unit Test User", stored.FullName);
         Assert.Equal("unit-test@example.com", stored.Email);
         Assert.Equal("050-1234567", stored.Phone);
+        Assert.Equal(PersonStatus.Active, stored.Status);
+    }
+
+    [Fact]
+    public async Task CreateAsync_persists_inactive_status_when_specified()
+    {
+        var id = await _sut.CreateAsync(new CreatePersonInput
+        {
+            FirstName = "Inactive",
+            LastName = "Person",
+            Email = "inactive@example.com",
+            Status = PersonStatus.Inactive
+        });
+
+        var stored = await _dbContext.People.AsNoTracking().SingleAsync(p => p.Id == id);
+        Assert.Equal(PersonStatus.Inactive, stored.Status);
+    }
+
+    [Fact]
+    public async Task ListAsync_filters_by_status()
+    {
+        await _sut.CreateAsync(new CreatePersonInput { FirstName = "Active", LastName = "One", Email = "a@e.com", Status = PersonStatus.Active });
+        await _sut.CreateAsync(new CreatePersonInput { FirstName = "Inactive", LastName = "Two", Email = "b@e.com", Status = PersonStatus.Inactive });
+
+        var activeOnly = await _sut.ListAsync(PersonStatus.Active);
+        var inactiveOnly = await _sut.ListAsync(PersonStatus.Inactive);
+        var all = await _sut.ListAsync();
+
+        Assert.Single(activeOnly);
+        Assert.Equal(PersonStatus.Active, activeOnly[0].Status);
+
+        Assert.Single(inactiveOnly);
+        Assert.Equal(PersonStatus.Inactive, inactiveOnly[0].Status);
+
+        Assert.Equal(2, all.Count);
     }
 
     [Fact]
@@ -85,7 +123,8 @@ public sealed class PeopleServiceTests : IDisposable
     {
         var input = new CreatePersonInput
         {
-            FullName = "Photo User",
+            FirstName = "Photo",
+            LastName = "User",
             Email = "photo-user@example.com",
             Phone = null,
             PhotoContent = new byte[] { 1, 2, 3 },
@@ -108,7 +147,8 @@ public sealed class PeopleServiceTests : IDisposable
     {
         var input = new CreatePersonInput
         {
-            FullName = "Bad",
+            FirstName = "Bad",
+            LastName = "",
             Email = "not-valid",
             Phone = null
         };
@@ -119,10 +159,10 @@ public sealed class PeopleServiceTests : IDisposable
     [Fact]
     public async Task CreateAsync_duplicate_email_throws_DbUpdateException()
     {
-        var input = new CreatePersonInput { FullName = "First", Email = "dup@example.com", Phone = "" };
+        var input = new CreatePersonInput { FirstName = "First", LastName = "", Email = "dup@example.com", Phone = "" };
         await _sut.CreateAsync(input);
 
-        var duplicate = new CreatePersonInput { FullName = "Second", Email = "dup@example.com", Phone = "" };
+        var duplicate = new CreatePersonInput { FirstName = "Second", LastName = "", Email = "dup@example.com", Phone = "" };
         await Assert.ThrowsAsync<Microsoft.EntityFrameworkCore.DbUpdateException>(() => _sut.CreateAsync(duplicate));
     }
 
@@ -138,13 +178,15 @@ public sealed class PeopleServiceTests : IDisposable
     {
         await _sut.CreateAsync(new CreatePersonInput
         {
-            FullName = "Alice",
+            FirstName = "Alice",
+            LastName = "",
             Email = "alice@example.com",
             Phone = ""
         });
         await _sut.CreateAsync(new CreatePersonInput
         {
-            FullName = "Bob",
+            FirstName = "Bob",
+            LastName = "",
             Email = "bob@example.com",
             Phone = ""
         });
@@ -156,17 +198,19 @@ public sealed class PeopleServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SearchAsync_filters_by_full_name_case_insensitive()
+    public async Task SearchAsync_filters_by_name_case_insensitive()
     {
         await _sut.CreateAsync(new CreatePersonInput
         {
-            FullName = "Moshe Cohen",
+            FirstName = "Moshe",
+            LastName = "Cohen",
             Email = "moshe@example.com",
             Phone = ""
         });
         await _sut.CreateAsync(new CreatePersonInput
         {
-            FullName = "Bracha Levi",
+            FirstName = "Bracha",
+            LastName = "Levi",
             Email = "bracha@example.com",
             Phone = ""
         });
@@ -182,7 +226,8 @@ public sealed class PeopleServiceTests : IDisposable
     {
         await _sut.CreateAsync(new CreatePersonInput
         {
-            FullName = "Pdf Row",
+            FirstName = "Pdf",
+            LastName = "Row",
             Email = "pdf@example.com",
             Phone = ""
         });
@@ -199,8 +244,8 @@ public sealed class PeopleServiceTests : IDisposable
     [Fact]
     public async Task ExportPeopleListByIdsAsync_preserves_order_and_skips_unknown_ids()
     {
-        var id1 = await _sut.CreateAsync(new CreatePersonInput { FullName = "First", Email = "a1@e.com", Phone = "" });
-        var id2 = await _sut.CreateAsync(new CreatePersonInput { FullName = "Second", Email = "a2@e.com", Phone = "" });
+        var id1 = await _sut.CreateAsync(new CreatePersonInput { FirstName = "First", LastName = "", Email = "a1@e.com", Phone = "" });
+        var id2 = await _sut.CreateAsync(new CreatePersonInput { FirstName = "Second", LastName = "", Email = "a2@e.com", Phone = "" });
 
         await _sut.ExportPeopleListByIdsAsync(new[] { id2, 99999, id1 });
 

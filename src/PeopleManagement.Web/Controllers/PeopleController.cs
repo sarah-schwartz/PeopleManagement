@@ -22,8 +22,8 @@ public class PeopleController : Controller
         _environment = environment ?? throw new ArgumentNullException(nameof(environment));
     }
 
-    /// <summary>Lists all people with optional search.</summary>
-    public async Task<IActionResult> Index(string? search, CancellationToken cancellationToken)
+    /// <summary>Lists all people with optional search and status filter.</summary>
+    public async Task<IActionResult> Index(string? search, PersonStatus? status, CancellationToken cancellationToken)
     {
         try
         {
@@ -35,13 +35,14 @@ public class PeopleController : Controller
             }
             else
             {
-                people = await _peopleService.ListAsync(cancellationToken);
+                people = await _peopleService.ListAsync(status, cancellationToken);
             }
 
             var viewModel = new PeopleIndexViewModel
             {
                 People = people,
-                SearchQuery = search
+                SearchQuery = search,
+                StatusFilter = status
             };
 
             return View(viewModel);
@@ -89,9 +90,11 @@ public class PeopleController : Controller
 
             var input = new CreatePersonInput
             {
-                FullName = model.FullName,
+                FirstName = model.FirstName,
+                LastName = model.LastName ?? string.Empty,
                 Email = model.Email,
                 Phone = model.Phone,
+                Status = model.Status,
                 PhotoContent = photoContent,
                 PhotoFileName = photoFileName,
                 PhotoContentType = photoContentType

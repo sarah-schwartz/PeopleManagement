@@ -26,10 +26,17 @@
                         }
 
                         <div class="mb-3">
-                            <label asp-for="FullName" class="form-label fw-500">שם מלא <span class="text-danger">*</span></label>
-                            <input asp-for="FullName" class="form-control form-control-lg"
-                                   placeholder="הזינו שם מלא" required />
-                            <span asp-validation-for="FullName" class="d-block text-danger small mt-1"></span>
+                            <label asp-for="FirstName" class="form-label fw-500">שם פרטי <span class="text-danger">*</span></label>
+                            <input asp-for="FirstName" class="form-control form-control-lg"
+                                   placeholder="הזינו שם פרטי" required />
+                            <span asp-validation-for="FirstName" class="d-block text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="LastName" class="form-label fw-500">שם משפחה <span class="text-muted small">(אופציונלי)</span></label>
+                            <input asp-for="LastName" class="form-control form-control-lg"
+                                   placeholder="הזינו שם משפחה" />
+                            <span asp-validation-for="LastName" class="d-block text-danger small mt-1"></span>
                         </div>
 
                         <div class="mb-3">
@@ -44,6 +51,14 @@
                             <input asp-for="Phone" type="tel" class="form-control form-control-lg"
                                    placeholder="הזינו מספר טלפון" />
                             <span asp-validation-for="Phone" class="d-block text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Status" class="form-label fw-500">סטטוס</label>
+                            <select asp-for="Status" class="form-select form-select-lg">
+                                <option value="Active">פעיל</option>
+                                <option value="Inactive">לא פעיל</option>
+                            </select>
                         </div>
 
                         <div class="mb-4">

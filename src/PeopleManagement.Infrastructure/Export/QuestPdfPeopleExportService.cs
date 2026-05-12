@@ -47,23 +47,27 @@ public sealed class QuestPdfPeopleExportService : IPdfExportService
                         {
                             table.ColumnsDefinition(columns =>
                             {
-                                columns.RelativeColumn(1);
-                                columns.RelativeColumn(1);
+                                columns.RelativeColumn(2);
+                                columns.RelativeColumn(2);
+                                columns.RelativeColumn(1.5f);
                                 columns.RelativeColumn(1);
                             });
 
                             table.Header(header =>
                             {
                                 header.Cell().Background(HeaderBackgroundColor).Padding(10).Text("שם מלא").FontColor(WhiteColor).Bold();
-                                header.Cell().Background(HeaderBackgroundColor).Padding(10).Text("טלפון").FontColor(WhiteColor).Bold();
                                 header.Cell().Background(HeaderBackgroundColor).Padding(10).Text("דוא\"ל").FontColor(WhiteColor).Bold();
+                                header.Cell().Background(HeaderBackgroundColor).Padding(10).Text("טלפון").FontColor(WhiteColor).Bold();
+                                header.Cell().Background(HeaderBackgroundColor).Padding(10).Text("סטטוס").FontColor(WhiteColor).Bold();
                             });
 
                             foreach (var person in people)
                             {
                                 table.Cell().Border(1).BorderColor(BorderColor).Padding(8).Text(person.FullName);
-                                table.Cell().Border(1).BorderColor(BorderColor).Padding(8).Text(string.IsNullOrEmpty(person.Phone) ? "" : person.Phone);
                                 table.Cell().Border(1).BorderColor(BorderColor).Padding(8).Text(person.Email);
+                                table.Cell().Border(1).BorderColor(BorderColor).Padding(8).Text(string.IsNullOrEmpty(person.Phone) ? "" : person.Phone);
+                                table.Cell().Border(1).BorderColor(BorderColor).Padding(8).Text(
+                                    person.Status == Domain.People.PersonStatus.Active ? "פעיל" : "לא פעיל");
                             }
                         });
                     });
@@ -129,8 +133,9 @@ public sealed class QuestPdfPeopleExportService : IPdfExportService
                             });
 
                             AddRow(table, "שם מלא:", person.FullName);
-                            AddRow(table, "טלפון:", string.IsNullOrEmpty(person.Phone) ? "" : person.Phone);
                             AddRow(table, "דוא\"ל:", person.Email);
+                            AddRow(table, "טלפון:", string.IsNullOrEmpty(person.Phone) ? "" : person.Phone);
+                            AddRow(table, "סטטוס:", person.Status == Domain.People.PersonStatus.Active ? "פעיל" : "לא פעיל");
                         });
                     });
 

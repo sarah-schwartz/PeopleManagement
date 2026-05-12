@@ -9,12 +9,19 @@ public sealed class CreatePersonInputValidator : AbstractValidator<CreatePersonI
 {
     public CreatePersonInputValidator()
     {
-        RuleFor(x => x.FullName)
+        RuleFor(x => x.FirstName)
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
-            .WithMessage("יש להזין שם מלא.")
-            .Must(static name => name.Trim().Length <= Person.FullNameMaxLength)
-            .WithMessage($"אורך השם המלא יכול להיות עד {Person.FullNameMaxLength} תווים.");
+            .WithMessage("יש להזין שם פרטי.")
+            .Must(static name => name.Trim().Length <= Person.FirstNameMaxLength)
+            .WithMessage($"אורך השם הפרטי יכול להיות עד {Person.FirstNameMaxLength} תווים.");
+
+        When(x => !string.IsNullOrWhiteSpace(x.LastName), () =>
+        {
+            RuleFor(x => x.LastName)
+                .MaximumLength(Person.LastNameMaxLength)
+                .WithMessage($"אורך שם המשפחה יכול להיות עד {Person.LastNameMaxLength} תווים.");
+        });
 
         RuleFor(x => x.Email)
             .Cascade(CascadeMode.Stop)
