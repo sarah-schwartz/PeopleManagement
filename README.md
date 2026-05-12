@@ -123,3 +123,23 @@ dotnet test tests/PeopleManagement.IntegrationTests/PeopleManagement.Integration
 ```bash
 dotnet test PeopleManagement.sln
 ```
+
+## Screenshots
+
+### Home screen — people list (empty state)
+![Home screen](<pictures for readme/מסך הבית.png>)
+
+### Add a new person — form with full name, email, phone, and optional profile photo
+![Add person form](<pictures for readme/הוספת אדם.png>)
+
+### Person added successfully — success banner and updated list
+![Person added successfully](<pictures for readme/אדם נוסף בהצלחה.png>)
+
+### Search by name — filtered results in real time
+![Search by name](<pictures for readme/חיפוש לפי שם.png>)
+
+### PDF export — people list exported as a formatted PDF
+![PDF export](<pictures for readme/PDF עם רשימת אנשים.png>)
+
+### All 17 tests passing — unit and integration
+![Tests passing](<pictures for readme/טסטסים רצים.png>)
