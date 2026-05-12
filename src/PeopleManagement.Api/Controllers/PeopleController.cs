@@ -57,7 +57,7 @@ public sealed class PeopleController : ControllerBase
         try
         {
             var personId = await _peopleService.CreateAsync(input, cancellationToken);
-            return CreatedAtAction(nameof(GetByIdAsync), new { id = personId }, new CreatePersonResponse(personId));
+            return CreatedAtAction(nameof(GetById), new { id = personId }, new CreatePersonResponse(personId));
         }
         catch (ValidationException ex)
         {
@@ -80,7 +80,7 @@ public sealed class PeopleController : ControllerBase
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(Person), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetByIdAsync(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
         var person = await _peopleService.GetByIdAsync(id, cancellationToken);
         if (person == null)

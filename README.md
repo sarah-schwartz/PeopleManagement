@@ -1,6 +1,6 @@
 # PeopleManagement
 
-Sample .NET solution for managing a list of people: ASP.NET Core Web API, optional MVC web UI, Entity Framework Core with SQL Server (or LocalDB), and PDF export (QuestPDF).
+A .NET 10 Web API for managing a list of people: create, list, search, and export to PDF.
 
 ## Technologies
 
@@ -9,20 +9,18 @@ Sample .NET solution for managing a list of people: ASP.NET Core Web API, option
 | Runtime | .NET 10 |
 | API | ASP.NET Core Web API, Swagger (Swashbuckle) |
 | Web UI | ASP.NET Core MVC (Razor) |
-| Data | Entity Framework Core 9, SQL Server provider |
+| Data | Entity Framework Core 10, SQL Server |
 | Validation | FluentValidation |
 | PDF | QuestPDF (Community license) |
 | Tests | xUnit, Moq, `WebApplicationFactory`, EF Core SQLite in-memory |
 
 ## Architecture
 
-Layers are separated as follows:
-
-- **PeopleManagement.Domain** — `Person` aggregate and domain rules (no infrastructure references).
-- **PeopleManagement.Application** — use cases (`IPeopleService`), `CreatePersonInput`, validators, `IPdfExportService` / `IFileStorageService` abstractions.
+- **PeopleManagement.Domain** — `Person` entity with no external dependencies.
+- **PeopleManagement.Application** — use cases (`IPeopleService`), `CreatePersonInput`, validators, abstractions.
 - **PeopleManagement.Infrastructure** — EF Core `PeopleManagementDbContext`, migrations, `PeopleService`, `LocalFileStorageService`, `QuestPdfPeopleExportService`, middleware.
-- **PeopleManagement.Api** — REST API (`/api/People`, …).
-- **PeopleManagement.Web** — browser UI (Hebrew), optional alongside the API.
+- **PeopleManagement.Api** — REST API (`/api/People`).
+- **PeopleManagement.Web** — browser UI.
 
 Data flow: **API/Web → `IPeopleService` → `DbContext` / file storage / PDF service**.
 
@@ -31,8 +29,7 @@ Data flow: **API/Web → `IPeopleService` → `DbContext` / file storage / PDF s
 ### Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- **SQL Server** or **SQL Server LocalDB** (for normal local runs with real migrations)
-- (Optional) Visual Studio 2022 or VS Code + C# Dev Kit
+- **SQL Server** (SQL Server Express with LocalDB is sufficient for local development)
 
 ### Clone and restore
 
@@ -44,11 +41,11 @@ dotnet restore
 
 ### Connection string
 
-Default LocalDB connection is in `src/PeopleManagement.Web/appsettings.json` and `src/PeopleManagement.Api/appsettings.json` under `ConnectionStrings:DefaultConnection`. Adjust for your SQL instance or use User Secrets:
+The default connection string is in `src/PeopleManagement.Api/appsettings.json` under `ConnectionStrings:DefaultConnection`. To override it, edit the file directly or use User Secrets:
 
 ```bash
 cd src/PeopleManagement.Api
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=...;Database=PeopleManagement;..."
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=YOUR_SERVER;Database=PeopleManagement;Trusted_Connection=True;TrustServerCertificate=true"
 ```
 
 ### Run the API
@@ -67,19 +64,15 @@ cd src/PeopleManagement.Web
 dotnet run
 ```
 
-Browse to the HTTPS URL shown in the console (default route: People/Index).
-
 ## Database migrations
 
-Migrations live in `src/PeopleManagement.Infrastructure/Persistence/Migrations`.
+Migrations are located in `src/PeopleManagement.Infrastructure/Migrations`.
 
 ### Apply migrations (automatic)
 
-On startup, **PeopleManagement.Web** and **PeopleManagement.Api** call `Database.Migrate()` unless `SkipEfMigrations` is set to `true` (used by integration tests).
+On startup, **PeopleManagement.Api** and **PeopleManagement.Web** call `Database.Migrate()` automatically — tables are created if they do not exist.
 
 ### Add a new migration
-
-From the repository root (startup project = Api or Web):
 
 ```bash
 dotnet ef migrations add MigrationName ^
@@ -97,39 +90,36 @@ dotnet ef database update ^
 
 ## API endpoints
 
-Base route: `api/People` (controller name `People`).
+Base route: `/api/People`
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/api/People` | Create a person. `multipart/form-data` fields: `fullName`, `email`, optional `phone`, optional `photo` file field. |
-| `GET` | `/api/People` | List all people (JSON array of `Person`). |
+| `POST` | `/api/People` | Create a person. `multipart/form-data` fields: `fullName`, `email`, optional `phone`, optional `photo` file. |
+| `GET` | `/api/People` | List all people (JSON array). |
 | `GET` | `/api/People/{id}` | Get one person by id. |
-| `GET` | `/api/People/search?query=` | Search by partial full name (case-insensitive). Empty query returns all. |
-| `GET` | `/api/People/export/pdf` | Download PDF of the full list. |
+| `GET` | `/api/People/search?query=` | Search by partial name (case-insensitive). Empty query returns all. |
+| `GET` | `/api/People/export/pdf` | Download a PDF of the full list. |
 
-Successful create returns `201 Created` with body `{ "id": <int> }`. Validation errors return `400` with a structured error payload.
+A successful create returns `201 Created` with body `{ "id": <int> }`. Validation errors return `400` with a structured error payload.
 
 ## Tests
 
-### Unit tests (`PeopleManagement.UnitTests`)
-
-Focus: `PeopleService` with in-memory EF Core, real `CreatePersonInputValidator`, mocked PDF and file storage.
+### Unit tests
 
 ```bash
 dotnet test tests/PeopleManagement.UnitTests/PeopleManagement.UnitTests.csproj
 ```
 
-### Integration tests (`PeopleManagement.IntegrationTests`)
+### Integration tests
 
-Uses `WebApplicationFactory` with **EF Core InMemory** and `SkipEfMigrations=true` so tests do not require SQL Server.
+Use `WebApplicationFactory` with SQLite in-memory — no SQL Server required.
 
 ```bash
 dotnet test tests/PeopleManagement.IntegrationTests/PeopleManagement.IntegrationTests.csproj
 ```
 
-Run all tests in the solution:
+### All tests
 
 ```bash
 dotnet test PeopleManagement.sln
 ```
-
