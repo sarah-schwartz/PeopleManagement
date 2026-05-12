@@ -1,0 +1,97 @@
+@model CreatePersonViewModel
+
+@{
+    ViewData["Title"] = "הוספת אדם";
+}
+
+<div class="container-lg py-4">
+    <div class="row">
+        <div class="col-12 col-md-8 col-lg-6 mx-auto">
+            <div class="mb-4">
+                <h1 class="h2 text-dark mb-1">הוספת אדם חדש</h1>
+                <p class="text-muted">מלאו את הפרטים הבאים כדי להוסיף אדם חדש למערכת</p>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data" novalidate>
+                        @Html.AntiForgeryToken()
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                <strong>יש שגיאות בטופס.</strong> בדקו את השדות המסומנים ונסו שוב.
+                                <div asp-validation-summary="All" class="small mt-2 mb-0"></div>
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label fw-500">שם מלא <span class="text-danger">*</span></label>
+                            <input asp-for="FullName" class="form-control form-control-lg"
+                                   placeholder="הזינו שם מלא" required />
+                            <span asp-validation-for="FullName" class="d-block text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label fw-500">דוא"ל <span class="text-danger">*</span></label>
+                            <input asp-for="Email" type="email" class="form-control form-control-lg"
+                                   placeholder="הזינו כתובת דוא&quot;ל" required />
+                            <span asp-validation-for="Email" class="d-block text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Phone" class="form-label fw-500">טלפון <span class="text-muted small">(אופציונלי)</span></label>
+                            <input asp-for="Phone" type="tel" class="form-control form-control-lg"
+                                   placeholder="הזינו מספר טלפון" />
+                            <span asp-validation-for="Phone" class="d-block text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="photoFile" class="form-label fw-500">תמונת פרופיל <span class="text-muted small">(אופציונלי)</span></label>
+                            <input type="file" name="photoFile" id="photoFile" class="form-control"
+                                   accept=".jpg,.jpeg,.png,.webp" />
+                            <small class="d-block text-muted mt-2">
+                                <i class="bi bi-info-circle"></i>
+                                פורמטים נתמכים: JPG, PNG, WebP עד 2MB
+                            </small>
+                        </div>
+
+                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
+                            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">ביטול</a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle"></i> שמירת אדם
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <p class="text-muted small mt-3 mb-0">
+                <i class="bi bi-info-circle"></i>
+                שדות חובה מסומנים בכוכבית <span class="text-danger">*</span>.
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+<style>
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .form-control-lg {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+
+    .fw-500 {
+        font-weight: 500;
+    }
+</style>

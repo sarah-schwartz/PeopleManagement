@@ -1,0 +1,139 @@
+@model PeopleIndexViewModel
+
+@{
+    ViewData["Title"] = "ניהול אנשים";
+}
+
+<div class="container-lg py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="h2 text-dark mb-0">ניהול אנשים</h1>
+                <div class="btn-group" role="group">
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> אדם חדש
+                    </a>
+                    <button type="submit" form="peopleExportPdfForm" class="btn btn-outline-secondary" title="מייצא ל-PDF את השורות המסומנות בלבד">
+                        <i class="bi bi-file-pdf"></i> יצוא ל-PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong><i class="bi bi-check-circle"></i> הצלחה:</strong> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="סגירה"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong><i class="bi bi-exclamation-circle"></i> שגיאה:</strong> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="סגירה"></button>
+        </div>
+    }
+
+    <div class="card card-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="d-flex gap-2">
+                <input type="text" name="search" class="form-control"
+                       placeholder="חיפוש לפי שם"
+                       value="@Model.SearchQuery" />
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> חיפוש
+                </button>
+                @if (!string.IsNullOrEmpty(Model.SearchQuery))
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> ניקוי
+                    </a>
+                }
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            @if (Model.People.Any())
+            {
+                <form id="peopleExportPdfForm" asp-action="ExportPdf" method="post" class="mb-0">
+                    @Html.AntiForgeryToken()
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center align-middle" style="width: 52px;" title="סימון לייצוא PDF">
+                                    <input type="checkbox" class="form-check-input m-0" id="selectAllPeople" aria-label="בחר את כל השורות לייצוא" />
+                                </th>
+                                <th style="width: 24%;">שם מלא</th>
+                                <th style="width: 24%;">דוא"ל</th>
+                                <th style="width: 18%;">טלפון</th>
+                                <th style="width: 26%;">נוצר בתאריך</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var person in Model.People)
+                            {
+                                <tr>
+                                    <td class="text-center align-middle">
+                                        <input class="form-check-input export-person-cb m-0" type="checkbox" name="selectedIds" value="@person.Id" aria-label="ייצוא @person.FullName ל-PDF" />
+                                    </td>
+                                    <td class="fw-500">@person.FullName</td>
+                                    <td>
+                                        <a href="mailto:@person.Email" class="text-decoration-none">@person.Email</a>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(person.Phone))
+                                        {
+                                            <a href="tel:@person.Phone" class="text-decoration-none">@person.Phone</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">@person.CreatedAtUtc.ToString("g")</small>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </form>
+            }
+            else
+            {
+                <div class="p-5 text-center text-muted">
+                    <div class="mb-2">
+                        <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <p class="mb-0">לא נמצאו אנשים. <a asp-action="Create">אפשר להוסיף אדם חדש</a>.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    .btn-group .btn {
+        border-radius: 0.375rem;
+    }
+
+    .card-sm {
+        border: 1px solid #dee2e6;
+    }
+</style>
+
+<script>
+    document.getElementById('selectAllPeople')?.addEventListener('change', function () {
+        var checked = this.checked;
+        document.querySelectorAll('.export-person-cb').forEach(function (cb) { cb.checked = checked; });
+    });
+</script>
